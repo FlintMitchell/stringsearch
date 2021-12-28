@@ -11,4 +11,5 @@ cd stringsearch
 wget 'https://sourceforge.net/projects/bbmap/files/BBMap_38.94.tar.gz'
 tar -zxvf BBMap_38.94.tar.gz
 rm BBMap_38.94.tar.gz
+
 ```
