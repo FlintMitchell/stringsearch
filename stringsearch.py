@@ -24,7 +24,7 @@ def getArguments():
 # .fastq format in the current directory that this python command is used.
 # returns the number of matches
 def findMatches(outname, in_path, searchstring, sequencelen):
-    subprocess.run(["software_dependencies/bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
+    subprocess.run(["bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
 
 # This function takes in the newly generated fastq file name from findmatches
 # and finds/returns the total number of matches that were found by bbduk.
