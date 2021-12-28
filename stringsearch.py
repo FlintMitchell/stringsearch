@@ -2,13 +2,7 @@
 
 import subprocess, argparse
 
-# this function will take in the filename to search through, the prefix to
-# output the result files with, and the sequence to search for and it will use
-# the bbduk.sh program to find those matches
-# def getMatches():
-#
-
-# this function parses the arguments that are passed in with the executable, which include
+# Parses the arguments that are passed in with the executable, which include
 # a sequence string to search for, the output prefix used to name result files,
 # and the input path for the fastq file. It returns these arguments.
 def getArguments():
@@ -19,21 +13,21 @@ def getArguments():
     args = parser.parse_args()
     return args
 
-# this function takes in the output prefix, file path, sequence to search for, and length of the sequence
+# Takes in the output prefix, file path, sequence to search for, and length of the sequence
 # and runs the bbduk.sh file to search for matches and save those matches in
 # .fastq format in the current directory that this python command is used.
 # returns the number of matches
 def findMatches(outname, in_path, searchstring, sequencelen):
     subprocess.run(["bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
 
-# This function takes in the newly generated fastq file name from findmatches
+# Takes in the newly generated fastq file name from findmatches
 # and finds/returns the total number of matches that were found by bbduk.
 def findNumMatches(filename):
     with open(filename, 'r') as f:
         numEntries = int(len(f.readlines()))
     return numEntries/4
 
-# This function passes in the newly generated fastq filename from findmatches,
+# Passes in the newly generated fastq filename from findmatches,
 # the number of matches of the searchstring, the searchstring, and its length
 # and returns a list of the sequnces (of length 4) that follow the search_string
 # in each match. For example in the Sequence 'AAACCCTTTGGG', if the searchstring
@@ -51,6 +45,8 @@ def getAfterBases(filename, nMatches, searchstring, sequencelen):
             afterBases[i]=afterBases[i] + sequences[i][buff+a]
     return afterBases
 
+# Using the list of n-base sequences from getAfterBases(), for each base,
+# calculate the percentage of A, C, G, or T at that position.
 def percentBases(seqs, numNucs):
     # create list of all the nucleotides in each position
     position = []
@@ -85,6 +81,8 @@ def percentBases(seqs, numNucs):
 
     return percentages
 
+# Create a _report.txt file that has the total count of the sequence being searched for
+# and the base-position percentages
 def createReport(outname,in_path,searchstring,numMatches,sequences,percentages):
     with open(outname+"_report.txt", "w+") as f:
         f.write("Results while searching for the search string:\n\n" + searchstring +"\n\n")
