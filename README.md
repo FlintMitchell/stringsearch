@@ -13,8 +13,30 @@ cd stringsearch
 wget 'https://sourceforge.net/projects/bbmap/files/BBMap_38.94.tar.gz'
 tar -zxvf BBMap_38.94.tar.gz
 rm BBMap_38.94.tar.gz
+chmod +x stringsearch.py
 
 ```
+
+After this, find the path into the stringsearch directory:
+```
+pwd
+```
+
+Then go to your desktop and edit your .bashrc or .bash_profile file by using:
+```
+vim .bash_profile
+```
+scroll to the bottom, press `i` to edit, add a new line and then the following:
+```
+export PATH=$PATH:[PATH/TO/STRINGSEARCH]
+```
+for example, this might look like:
+```
+export PATH=$PATH:/Users/flintmitchell/Desktop/stringsearch
+```
+
+Now, exit your terminal, reopen it, and the stringsearch.py program should be available
+to use anywhere on your computer from the terminal.
 
 ## Usage and Output
 
