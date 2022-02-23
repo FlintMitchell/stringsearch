@@ -8,7 +8,7 @@ Requires Python3, wget, git, bbmap, numpy, and matplotlib (this is installed via
 Copy and paste the following instructions:
 
 ```
-pip install matplotlib numpy
+pip3 install matplotlib numpy
 git clone https://github.com/FlintMitchell/stringsearch.git
 cd stringsearch
 wget 'https://sourceforge.net/projects/bbmap/files/BBMap_38.94.tar.gz'
