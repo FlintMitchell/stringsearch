@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import subprocess, argparse, os, pyfastx
+import subprocess, argparse, os
 import matplotlib.pyplot as plt
 import numpy as np
 
