@@ -46,6 +46,7 @@ This command uses three options:
 -i PATH/TO/INPUT/file.fastq
 -o desired_output_prefix
 -s string to search for
+-n The number of bases to analyze in the entries with a string match.
 ```
 example:
 ```
