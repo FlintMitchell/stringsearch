@@ -1,15 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-import subprocess, argparse
+import subprocess, argparse, os, pyfastx
+import matplotlib.pyplot as plt
+import numpy as np
 
 # Parses the arguments that are passed in with the executable, which include
 # a sequence string to search for, the output prefix used to name result files,
 # and the input path for the fastq file. It returns these arguments.
 def getArguments():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', metavar='searchstring', help="sequence to search through")
-    parser.add_argument('-o', metavar='output_prefix', help="The prefix to give result files")
-    parser.add_argument('-i', metavar='input_path', help="The fastq file, including its path")
+    parser.add_argument('-s', metavar='searchstring', help="sequence to search through.")
+    parser.add_argument('-o', metavar='output_prefix', help="The prefix to give result files.")
+    parser.add_argument('-i', metavar='input_path', help="The fastq file, including its path.")
+    parser.add_argument('-n', metavar='num_bases_after_string', help="The number of bases to analyze in the entries with a string match.")
     args = parser.parse_args()
     return args
 
@@ -17,11 +20,10 @@ def getArguments():
 # and runs the bbduk.sh file to search for matches and save those matches in
 # .fastq format in the current directory that this python command is used.
 # returns the number of matches
-def findMatches(outname, in_path, searchstring, sequencelen):
-    subprocess.run(["bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
+def findMatches(outname, in_path, searchstring, sequencelen,dependencyPATH):
+    subprocess.run([dependencyPATH+"/bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
 
-# Takes in the newly generated fastq file name from findmatches
-# and finds/returns the total number of matches that were found by bbduk.
+# Takes in a fastq file and finds/returns the total number of entries.
 def findNumMatches(filename):
     with open(filename, 'r') as f:
         numEntries = int(len(f.readlines()))
@@ -32,7 +34,10 @@ def findNumMatches(filename):
 # and returns a list of the sequnces (of length 4) that follow the search_string
 # in each match. For example in the Sequence 'AAACCCTTTGGG', if the searchstring
 # was 'CCC', this would return a ['TTTG']
-def getAfterBases(filename, nMatches, searchstring, sequencelen):
+
+# edits: 1) Instead of returning a list, create a fasta file with the sequences
+# 2) make it flexible for however many bases afterwards, not just 4
+def getAfterBases(filename, nMatches, searchstring, sequencelen, nBasesAfterSeq):
     sequences=[]
     afterBases=[]
     with open(filename, 'r') as f:
@@ -41,7 +46,7 @@ def getAfterBases(filename, nMatches, searchstring, sequencelen):
         sequences.append(content[i*4+1])
         buff = sequences[i].find(searchstring)
         afterBases.append("")
-        for a in range(0,4):
+        for a in range(0,nBasesAfterSeq):
             afterBases[i]=afterBases[i] + sequences[i][buff+a]
     return afterBases
 
@@ -78,30 +83,42 @@ def percentBases(seqs, numNucs):
     for i in range(0,len(percentages)):
         for p in range(0,len(percentages[i])):
             percentages[i][p] = (percentages[i][p] / seqLength) * 100
-
     return percentages
 
 # Create a _report.txt file that has the total count of the sequence being searched for
 # and the base-position percentages
-def createReport(outname,in_path,searchstring,numMatches,sequences,percentages):
+def createReport(outname,in_path,searchstring,numMatches,sequences,percentages,numBasesAfterString):
+    totalInputEntries = int(findNumMatches(in_path))
     with open(outname+"_report.txt", "w+") as f:
-        f.write("Results while searching for the search string:\n\n" + searchstring +"\n\n")
+        f.write("Results while searching for the search string:\n\n" + str(searchstring) +"\n\n")
         f.write("in:\n\n" + in_path + "\n\n")
-        f.write("The string was found " + str(int(numMatches)) + " times.\n\n")
-        f.write("For the four nucleotides AFTER this sequence, they contain the following percentages:\n\n")
-        f.write("XNNN\nA: " + str(percentages[0][0]) + " C: " + str(percentages[0][1]) + " G: " + str(percentages[0][2]) + " T: " + str(percentages[0][3]) + "\n")
-        f.write("NXNN\nA: " + str(percentages[1][0]) + " C: " + str(percentages[1][1]) + " G: " + str(percentages[1][2]) + " T: " + str(percentages[1][3]) + "\n")
-        f.write("NNXN\nA: " + str(percentages[2][0]) + " C: " + str(percentages[2][1]) + " G: " + str(percentages[2][2]) + " T: " + str(percentages[2][3]) + "\n")
-        f.write("NNNX\nA: " + str(percentages[3][0]) + " C: " + str(percentages[3][1]) + " G: " + str(percentages[3][2]) + " T: " + str(percentages[3][3]) + "\n\n")
+        f.write("Total number of entries in the input fastq file: " + str(totalInputEntries) + ".\n")
+        f.write("The string was found " + str(int(numMatches)) + " times.\n")
+        f.write("Percentage of entries in the input fastq file with the string being searched for: " + str(round((numMatches/totalInputEntries*100),2)) + "%.\n\n")
+        f.write("For the " + str(numBasesAfterString) +" nucleotides AFTER this sequence, they contain the following percentages:\n\n")
+        # f.write("XNNN\nA: " + str(percentages[0][0]) + " C: " + str(percentages[0][1]) + " G: " + str(percentages[0][2]) + " T: " + str(percentages[0][3]) + "\n")
+        # f.write("NXNN\nA: " + str(percentages[1][0]) + " C: " + str(percentages[1][1]) + " G: " + str(percentages[1][2]) + " T: " + str(percentages[1][3]) + "\n")
+        # f.write("NNXN\nA: " + str(percentages[2][0]) + " C: " + str(percentages[2][1]) + " G: " + str(percentages[2][2]) + " T: " + str(percentages[2][3]) + "\n")
+        # f.write("NNNX\nA: " + str(percentages[3][0]) + " C: " + str(percentages[3][1]) + " G: " + str(percentages[3][2]) + " T: " + str(percentages[3][3]) + "\n\n")
+        for i in range(0,len(percentages)):
+            f.write("base " + str(i+1) + ": " + str(percentages[i]) + "\n")
+    return
+
 
 def main():
     args = getArguments()
-    outname, in_path, searchstring, sequencelen = args.o, args.i, args.s, str(len(args.s))
-    findMatches(outname, in_path, searchstring, sequencelen)
-    numMatches = findNumMatches(outname+"_results.fastq")
-    sequences = getAfterBases(outname+"_results.fastq", numMatches, searchstring, sequencelen)
-    percentages = percentBases(sequences, 4)
-    createReport(outname,in_path,searchstring,numMatches,sequences,percentages)
+    outname, in_path, searchstring, sequencelen, numBasesAfterString = args.o, args.i, args.s, str(len(args.s)), int(args.n)
+    dependencyPATH=os.path.abspath(os.path.dirname(__file__))
+    findMatches(outname, in_path, searchstring, sequencelen, dependencyPATH)
+    numMatches = findNumMatches(outname+"_results.fastq") # Finds/return the total number of matches that were found by bbduk.
+    sequences = getAfterBases(outname+"_results.fastq", numMatches, searchstring, sequencelen, numBasesAfterString)
+    percentages = percentBases(sequences, numBasesAfterString)
+    createReport(outname,in_path,searchstring,numMatches,sequences,percentages,numBasesAfterString)
+
+    # print out report
+    with open(outname+"_report.txt", 'r') as f:
+        print(f.read())
 
 if __name__ == "__main__":
     main()
+
