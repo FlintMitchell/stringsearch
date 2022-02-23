@@ -50,7 +50,7 @@ This command uses three options:
 ```
 example:
 ```
-python3 stringsearch.py -i mydata/file001.fastq -o file001 -s ACGTACGTATGACTACGTCAG
+python3 stringsearch.py -i mydata/file001.fastq -o file001 -s ACGTACGTATGACTACGTCAG -n 5
 ```
 
 This will output two files:
