@@ -1,13 +1,14 @@
 # stringsearch
 Searching for and analyzing substrings within fastq files 
 
-Requires Python3 and bbmap (this is installed via the instructions below)
+Requires Python3, bbmap, numpy, and matplotlib (this is installed via the instructions below)
 
 ## Installation.
 
 Copy and paste the following instructions:
 
 ```
+pip install matplotlib numpy
 git clone https://github.com/FlintMitchell/stringsearch.git
 cd stringsearch
 wget 'https://sourceforge.net/projects/bbmap/files/BBMap_38.94.tar.gz'
