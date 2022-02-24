@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import subprocess, argparse, os
+import subprocess, argparse, os, gzip
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -22,9 +22,11 @@ def getArguments():
 # returns the number of matches
 def findMatches(outname, in_path, searchstring, sequencelen,dependencyPATH):
     subprocess.run([dependencyPATH+"/bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
+    # subprocess.run([dependencyPATH+"/bbmap/bbduk.sh","in="+in_path, "outm="+outname+"_NOMATCH_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "rcomp=f"])
 
 # Takes in a fastq file and finds/returns the total number of entries.
 def findNumMatches(filename):
+    print(filename)
     with open(filename, 'r') as f:
         numEntries = int(len(f.readlines()))
     return numEntries/4
@@ -41,13 +43,13 @@ def getAfterBases(filename, nMatches, searchstring, sequencelen, nBasesAfterSeq)
     sequences=[]
     afterBases=[]
     with open(filename, 'r') as f:
-        content = f.read().splitlines()
+        content = f.read().splitlines() #
     for i in range(0,int(nMatches)):
-        sequences.append(content[i*4+1])
-        buff = sequences[i].find(searchstring)
+        sequences.append(content[i*4+1]) # get only the sequences from the fastq file and put into a list of sequences
+        buff = sequences[i].find(searchstring) # find the location where the search string starts in the current sequence
         afterBases.append("")
         for a in range(0,nBasesAfterSeq):
-            afterBases[i]=afterBases[i] + sequences[i][buff+a]
+            afterBases[i]=afterBases[i] + sequences[i][buff+int(sequencelen)+a]
     return afterBases
 
 # Using the list of n-base sequences from getAfterBases(), for each base,
@@ -82,7 +84,7 @@ def percentBases(seqs, numNucs):
     # Turn counts into percentages
     for i in range(0,len(percentages)):
         for p in range(0,len(percentages[i])):
-            percentages[i][p] = (percentages[i][p] / seqLength) * 100
+            percentages[i][p] = round((percentages[i][p] / seqLength) * 100, 2)
     return percentages
 
 # Create a _report.txt file that has the total count of the sequence being searched for
@@ -96,14 +98,10 @@ def createReport(outname,in_path,searchstring,numMatches,sequences,percentages,n
         f.write("The string was found " + str(int(numMatches)) + " times.\n")
         f.write("Percentage of entries in the input fastq file with the string being searched for: " + str(round((numMatches/totalInputEntries*100),2)) + "%.\n\n")
         f.write("For the " + str(numBasesAfterString) +" nucleotides AFTER this sequence, they contain the following percentages:\n\n")
-        # f.write("XNNN\nA: " + str(percentages[0][0]) + " C: " + str(percentages[0][1]) + " G: " + str(percentages[0][2]) + " T: " + str(percentages[0][3]) + "\n")
-        # f.write("NXNN\nA: " + str(percentages[1][0]) + " C: " + str(percentages[1][1]) + " G: " + str(percentages[1][2]) + " T: " + str(percentages[1][3]) + "\n")
-        # f.write("NNXN\nA: " + str(percentages[2][0]) + " C: " + str(percentages[2][1]) + " G: " + str(percentages[2][2]) + " T: " + str(percentages[2][3]) + "\n")
-        # f.write("NNNX\nA: " + str(percentages[3][0]) + " C: " + str(percentages[3][1]) + " G: " + str(percentages[3][2]) + " T: " + str(percentages[3][3]) + "\n\n")
+        f.write("        [  A  ,  C  ,  G  ,  T  ]\n")
         for i in range(0,len(percentages)):
             f.write("base " + str(i+1) + ": " + str(percentages[i]) + "\n")
     return
-
 
 def main():
     args = getArguments()
@@ -121,4 +119,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
