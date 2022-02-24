@@ -39,6 +39,14 @@ export PATH=$PATH:/Users/flintmitchell/Desktop/stringsearch
 Now, exit your terminal, reopen it, and the stringsearch.py program should be available
 to use anywhere on your computer from the terminal.
 
+## Updating
+
+To update the stringsearch.py file, go into the directory where it is stored and use the following command:
+```
+wget https://raw.githubusercontent.com/FlintMitchell/stringsearch/master/stringsearch.py
+```
+This will update the current program.
+
 ## Usage and Output
 
 This command uses three options:
