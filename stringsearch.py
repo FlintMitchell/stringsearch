@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import subprocess, argparse, os, gzip
-import matplotlib.pyplot as plt
-import numpy as np
 
 # Parses the arguments that are passed in with the executable, which include
 # a sequence string to search for, the output prefix used to name result files,
