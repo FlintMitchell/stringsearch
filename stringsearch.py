@@ -80,8 +80,11 @@ def percentBases(seqs, numNucs):
 
     # Turn counts into percentages
     for i in range(0,len(percentages)):
-        for p in range(0,len(percentages[i])):
-            percentages[i][p] = round((percentages[i][p] / seqLength) * 100, 2)
+        if seqLength == 0:
+            print("error")
+        else:
+            for p in range(0,len(percentages[i])):
+                percentages[i][p] = round((percentages[i][p] / seqLength) * 100, 2)
     return percentages
 
 # Create a _report.txt file that has the total count of the sequence being searched for
