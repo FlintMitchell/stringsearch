@@ -10,8 +10,9 @@ def getArguments():
     parser.add_argument('-s', metavar='searchstring', help="sequence to search through.")
     parser.add_argument('-o', metavar='output_prefix', help="The prefix to give result files.")
     parser.add_argument('-i', metavar='input_path', help="The fastq file, including its path.")
-    parser.add_argument('-e', metavar='edit_dist', help="The number of insertions, deletions, or substitions allowed.")
     parser.add_argument('-n', metavar='num_bases_after_string', help="The number of bases to analyze in the entries with a string match.")
+    parser.add_argument('-e', metavar='edit_dist', help="The number of insertions, deletions, or substitions allowed.")
+
     args = parser.parse_args()
     return args
 
@@ -25,8 +26,14 @@ def findMatches(outname, in_path, searchstring, sequencelen,dependencyPATH,edit_
 # Takes in a fastq file and finds/returns the total number of entries.
 def findNumMatches(filename):
     print(filename)
-    with open(filename, 'r') as f:
-        numEntries = int(len(f.readlines()))
+    print(str(filename))
+
+    if str(filename).endswith('.gz') == True:
+        with gzip.open(filename, 'r') as f:
+            numEntries = int(len(f.readlines()))
+    else:
+        with open(filename, 'r') as f:
+            numEntries = int(len(f.readlines()))
     return numEntries/4
 
 # Passes in the newly generated fastq filename from findmatches,
@@ -78,6 +85,7 @@ def percentBases(seqs, numNucs):
             elif nucPos[i] == "T":
                 buff[3]=buff[3]+1
         percentages.append(buff)
+    print(percentages)
 
     # Turn counts into percentages
     for i in range(0,len(percentages)):
@@ -107,11 +115,13 @@ def createReport(outname,in_path,searchstring,numMatches,sequences,percentages,n
 def main():
     args = getArguments()
     outname, in_path, searchstring, sequencelen, numBasesAfterString, edist = args.o, args.i, args.s, str(len(args.s)), int(args.n), int(args.e)
+    print(f"HEYY {outname}")
     dependencyPATH=os.path.abspath(os.path.dirname(__file__))
     findMatches(outname, in_path, searchstring, sequencelen, dependencyPATH, edist)
     numMatches = findNumMatches(outname+"_results.fastq") # Finds/return the total number of matches that were found by bbduk.
     sequences = getAfterBases(outname+"_results.fastq", numMatches, searchstring, sequencelen, numBasesAfterString)
     percentages = percentBases(sequences, numBasesAfterString)
+    print(f"HEY {outname}")
     createReport(outname,in_path,searchstring,numMatches,sequences,percentages,numBasesAfterString)
 
     # print out report
