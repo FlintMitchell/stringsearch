@@ -10,6 +10,7 @@ def getArguments():
     parser.add_argument('-s', metavar='searchstring', help="sequence to search through.")
     parser.add_argument('-o', metavar='output_prefix', help="The prefix to give result files.")
     parser.add_argument('-i', metavar='input_path', help="The fastq file, including its path.")
+    parser.add_argument('-e', metavar='edit_dist', help="The number of insertions, deletions, or substitions allowed.")
     parser.add_argument('-n', metavar='num_bases_after_string', help="The number of bases to analyze in the entries with a string match.")
     args = parser.parse_args()
     return args
@@ -18,8 +19,8 @@ def getArguments():
 # and runs the bbduk.sh file to search for matches and save those matches in
 # .fastq format in the current directory that this python command is used.
 # returns the number of matches
-def findMatches(outname, in_path, searchstring, sequencelen,dependencyPATH):
-    subprocess.run([dependencyPATH+"/bbmap/bbduk.sh","in="+in_path, "out="+outname+"_NOMATCH_results.fastq", "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "mm=f", "rcomp=f"])
+def findMatches(outname, in_path, searchstring, sequencelen,dependencyPATH,edit_dist):
+    subprocess.run([dependencyPATH+"/bbmap/bbduk.sh","in="+in_path, "out="+outname+"_NOMATCH_results.fastq", "outm="+outname+"_results.fastq", "literal="+searchstring, "k="+sequencelen, "copyundefined", "edist="+str(edit_dist), "mm=f", "rcomp=f"])
 
 # Takes in a fastq file and finds/returns the total number of entries.
 def findNumMatches(filename):
@@ -105,9 +106,9 @@ def createReport(outname,in_path,searchstring,numMatches,sequences,percentages,n
 
 def main():
     args = getArguments()
-    outname, in_path, searchstring, sequencelen, numBasesAfterString = args.o, args.i, args.s, str(len(args.s)), int(args.n)
+    outname, in_path, searchstring, sequencelen, numBasesAfterString, edist = args.o, args.i, args.s, str(len(args.s)), int(args.n), int(args.e)
     dependencyPATH=os.path.abspath(os.path.dirname(__file__))
-    findMatches(outname, in_path, searchstring, sequencelen, dependencyPATH)
+    findMatches(outname, in_path, searchstring, sequencelen, dependencyPATH, edist)
     numMatches = findNumMatches(outname+"_results.fastq") # Finds/return the total number of matches that were found by bbduk.
     sequences = getAfterBases(outname+"_results.fastq", numMatches, searchstring, sequencelen, numBasesAfterString)
     percentages = percentBases(sequences, numBasesAfterString)
